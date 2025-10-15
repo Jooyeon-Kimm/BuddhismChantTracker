@@ -9,7 +9,18 @@ class ChantRepository(private val dao: ChantDao) {
     fun sessionsOfDay(date: LocalDate): Flow<List<ChantSession>> =
         dao.sessionsOfDay(date.toString())
 
-    suspend fun startSession(typeLabel: String, custom: String?, now: Long, ymd: String): ChantSession {
+    fun monthTotals(yearMonth: java.time.YearMonth): Flow<List<com.app.practice.buddhismchanttracker.data.model.DayCount>> {
+        val from = yearMonth.atDay(1).toString()
+        val to = yearMonth.atEndOfMonth().toString()
+        return dao.dayTotals(from, to)
+    }
+
+    suspend fun startSession(
+        typeLabel: String,
+        custom: String?,
+        now: Long,
+        ymd: String,
+    ): ChantSession {
         val s = ChantSession(
             typeLabel = typeLabel,
             customLabel = custom,
@@ -29,4 +40,9 @@ class ChantRepository(private val dao: ChantDao) {
         dao.update(session.copy(endedAt = endMillis))
 
     suspend fun currentRunningOrNull(): ChantSession? = dao.currentRunningOrNull()
+
+    // --- DEV: seed helper ---
+    suspend fun insertAll(sessions: List<ChantSession>) {
+        dao.insertAll(sessions)
+    }
 }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.app.practice.buddhismchanttracker.ui.calendar.CalendarRoute
 import com.app.practice.buddhismchanttracker.ui.home.HomeRoute
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
                     Box(Modifier.padding(innerPadding)) {
                         when (tab) {
                             0 -> HomeRoute()
-                            1 -> Placeholder("달력 (차후 구현)")
+                            1 -> CalendarRoute()
                             else -> Placeholder("계정정보 (차후 구현)")
                         }
                     }
@@ -79,5 +80,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun Placeholder(text: String) {
-    Surface { Text(text, modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
+    Surface { Text(text, modifier = Modifier.padding(24.dp)) }
 }
