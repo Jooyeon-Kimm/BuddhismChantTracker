@@ -4,8 +4,11 @@ import com.app.practice.buddhismchanttracker.data.model.ChantDao
 import com.app.practice.buddhismchanttracker.data.model.ChantSession
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import javax.inject.Inject
 
-class ChantRepository(private val dao: ChantDao) {
+class ChantRepository @Inject constructor(
+    private val dao: ChantDao
+) {
     fun sessionsOfDay(date: LocalDate): Flow<List<ChantSession>> =
         dao.sessionsOfDay(date.toString())
 

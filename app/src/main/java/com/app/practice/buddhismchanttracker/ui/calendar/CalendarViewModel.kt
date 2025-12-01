@@ -86,48 +86,4 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
         if (YearMonth.from(day) != ym) pickDate(ym.atDay(1))
     }
 
-
-    /** TEST **/
-    // --- DEV: 선택된 날짜에 더미 데이터 넣기 ---
-    fun seedSamplesForSelectedDate() {
-        val date = _ui.value.selectedDate
-        val ymd = date.toString()
-
-        // 오전 9:10~9:20, 오후 1:34~1:45, 밤 9:00~9:12 같이 3개 세션 예시
-        fun millisAt(h: Int, m: Int, s: Int) =
-            java.time.ZonedDateTime.of(
-                date,
-                LocalTime.of(h, m, s),
-                systemDefault()
-            )
-                .toInstant().toEpochMilli()
-
-        val samples = listOf(
-            ChantSession(
-                typeLabel = "관세음보살",
-                customLabel = null,
-                startedAt = millisAt(9, 10, 1),
-                endedAt = millisAt(9, 20, 48),
-                count = 33,
-                ymd = ymd
-            ),
-            ChantSession(
-                typeLabel = "나무 아미타불",
-                customLabel = null,
-                startedAt = millisAt(13, 34, 42),
-                endedAt = millisAt(13, 50, 5),
-                count = 29,
-                ymd = ymd
-            ),
-            ChantSession(
-                typeLabel = "지장보살",
-                customLabel = null,
-                startedAt = millisAt(21, 0, 0),
-                endedAt = millisAt(21, 12, 30),
-                count = 18,
-                ymd = ymd
-            )
-        )
-        viewModelScope.launch { repo.insertAll(samples) }
-    }
 }

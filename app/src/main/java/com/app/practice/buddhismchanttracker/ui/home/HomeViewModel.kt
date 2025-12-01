@@ -1,36 +1,50 @@
 package com.app.practice.buddhismchanttracker.ui.home
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.practice.buddhismchanttracker.data.model.ChantDb
-import com.app.practice.buddhismchanttracker.data.model.ChantSession
 import com.app.practice.buddhismchanttracker.data.repository.ChantRepository
 import com.app.practice.buddhismchanttracker.voice.SpeechRecognizerManager
-import kotlinx.coroutines.flow.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.collections.sortedByDescending
 
-class HomeViewModel(app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class HomeViewModel  @Inject constructor(
+    private val repo: ChantRepository,
+    private val speechRecognizer: SpeechRecognizerManager
+) : ViewModel() {
 
-    private val repo = ChantRepository(ChantDb.get(app).dao())
-    private val sr = SpeechRecognizerManager(app)
+    val heardText = speechRecognizer.lastHeardText
 
     private val today = LocalDate.now()
     private val ymd = today.toString()
-    private val todayHuman = today.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일 E요일", Locale.KOREAN))
+    private val todayDate =
+        today.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일 E요일", Locale.KOREAN))
 
-    private val _ui = MutableStateFlow(HomeUiState(todayKorean = todayHuman))
+    private val _ui = MutableStateFlow(HomeUiState(todayDate = todayDate))
     val ui: StateFlow<HomeUiState> = _ui.asStateFlow()
 
     init {
         // 오늘 세션 스트림
         viewModelScope.launch {
             repo.sessionsOfDay(today).collect { list ->
-                _ui.update { it.copy(todaySessions = list.sortedByDescending { s -> s.startedAt }) }
+                _ui.update {
+                    it.copy(
+                        todaySessions = list.sortedByDescending { s -> s.startedAt }
+                    )
+                }
             }
         }
         // 진행 중 세션 복구
@@ -45,7 +59,16 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         }
         // 음성 리스닝 상태 반영
         viewModelScope.launch {
-            sr.listening.collect { L -> _ui.update { it.copy(listening = L) } }
+            speechRecognizer.listening.collect { L ->
+                _ui.update { it.copy(listening = L) }
+            }
+        }
+
+        // 인식된 음성 텍스트 표시
+        viewModelScope.launch {
+            speechRecognizer.lastHeardText.collect { text ->
+                _ui.update { it.copy(heardText = text) }
+            }
         }
     }
 
@@ -55,8 +78,11 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun inc(delta: Int) {
         val newCount = (_ui.value.count + delta).coerceAtLeast(0)
         _ui.update { it.copy(count = newCount) }
-        _ui.value.running?.let { s -> viewModelScope.launch { repo.setCount(s, newCount) } }
+        _ui.value.running?.let { s ->
+            viewModelScope.launch { repo.setCount(s, newCount) }
+        }
     }
+
     fun dec() = inc(-1)
 
     fun toggleStartStop() {
@@ -64,30 +90,83 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         if (running == null) {
             // start
             viewModelScope.launch {
-                val label = if (_ui.value.type == ChantType.CUSTOM) _ui.value.customText.trim().ifEmpty { "직접 입력" } else _ui.value.type.label
+                val label =
+                    if (_ui.value.type == ChantType.CUSTOM)
+                        _ui.value.customText.trim().ifEmpty { "직접 입력" }
+                    else
+                        _ui.value.type.label
+
+                Log.d("HomeViewModel", "Start Listening = [$label]")
+
                 val now = System.currentTimeMillis()
-                val s = repo.startSession(label, if (_ui.value.type == ChantType.CUSTOM) _ui.value.customText.trim() else null, now, ymd)
-                _ui.update { it.copy(running = s, count = 0) }
+                val chantSession = repo.startSession(
+                    typeLabel = label,
+                    custom = if (_ui.value.type == ChantType.CUSTOM)
+                        _ui.value.customText.trim()
+                    else
+                        null,
+                    now = now,
+                    ymd = ymd
+                )
+                _ui.update { it.copy(running = chantSession, count = 0) }
                 startListeningFor(label)
             }
         } else {
             // stop
             viewModelScope.launch {
                 repo.stopSession(running, System.currentTimeMillis())
-                sr.stop()
+                speechRecognizer.stop()
                 _ui.update { it.copy(running = null, listening = false) }
             }
         }
     }
 
     private fun startListeningFor(label: String) {
-        // 키워드 후보: 선택된 라벨 + 보조 표기 몇 개
-        val keys = buildList {
-            add(label)
-            if (label.contains("관세음보살")) add("관세음 보살")
-            if (label.contains("아미타불")) add("아미타 불")
-            if (label.contains("지장보살")) add("지장 보살")
+        val keywords = listOf(label)
+
+        speechRecognizer.start(
+            keywords = keywords,
+            onHit = {
+                // 음성으로 한 번 "인식 성공" 했을 때 +1
+                inc(1)
+            }
+        )
+    }
+
+
+    // 입력값 변경
+    fun setInputText(s: String) = _ui.update { it.copy(inputText = s) }
+
+    // 항목 추가 (확인 버튼)
+    fun addItem() {
+        val t = _ui.value.inputText.trim()
+        if (t.isEmpty()) return
+        val newItem = ChantItem(text = t)
+        _ui.update { it.copy(items = it.items + newItem, inputText = "") }
+    }
+
+    // 체크 토글
+    fun toggleItemChecked(id: Long) {
+        _ui.update {
+            it.copy(
+                items = it.items.map { item ->
+                    if (item.id == id) item.copy(checked = !item.checked) else item
+                }
+            )
         }
-        sr.start(keys) { inc(1) }
+    }
+
+    // 삭제모드 토글 (삭제하기 버튼)
+    fun toggleDeleteMode() = _ui.update { it.copy(deleteMode = !it.deleteMode) }
+
+    // 개별 삭제 (삭제 버튼)
+    fun removeItem(id: Long) {
+        _ui.update { it.copy(items = it.items.filterNot { item -> item.id == id }) }
+    }
+
+    // +++ 증가 단위 설정
+    fun setBigStep(step: Int) {
+        val safe = step.coerceAtLeast(1)
+        _ui.update { it.copy(bigStep = safe) }
     }
 }
