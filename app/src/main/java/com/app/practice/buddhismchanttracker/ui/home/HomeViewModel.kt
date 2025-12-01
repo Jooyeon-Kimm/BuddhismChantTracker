@@ -1,11 +1,8 @@
 package com.app.practice.buddhismchanttracker.ui.home
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.practice.buddhismchanttracker.data.model.ChantDb
 import com.app.practice.buddhismchanttracker.data.repository.ChantRepository
 import com.app.practice.buddhismchanttracker.voice.SpeechRecognizerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,15 +72,42 @@ class HomeViewModel  @Inject constructor(
     fun pickType(t: ChantType) = _ui.update { it.copy(type = t) }
     fun setCustom(text: String) = _ui.update { it.copy(customText = text) }
 
-    fun inc(delta: Int) {
-        val newCount = (_ui.value.count + delta).coerceAtLeast(0)
-        _ui.update { it.copy(count = newCount) }
+    fun changeCount(delta: Int, source: CountType) {
+        val oldCount = _ui.value.count
+        val newCount = (oldCount + delta).coerceAtLeast(0)
+
+        val now = System.currentTimeMillis()
+
+        val entry = CountLogEntry(
+            timestamp = now,
+            source = source,
+            delta = delta,
+            total = newCount
+        )
+
+        _ui.update { state ->
+            state.copy(
+                count = newCount,
+                // 새 로그를 맨 앞에 추가 → 최신이 맨 위
+                countLogs = (listOf(entry) + state.countLogs).take(100)
+            )
+        }
+
+        // running 세션 있으면 DB에 카운트 반영
         _ui.value.running?.let { s ->
             viewModelScope.launch { repo.setCount(s, newCount) }
         }
     }
 
-    fun dec() = inc(-1)
+    // 편의 함수들
+    fun incSmall() = changeCount(+1, CountType.MANUAL_SMALL)
+    fun decSmall() = changeCount(-1, CountType.MANUAL_SMALL)
+    fun incBig()  = changeCount(_ui.value.bigStep, CountType.MANUAL_BIG)
+    fun decBig()  = changeCount(-_ui.value.bigStep, CountType.MANUAL_BIG)
+    fun hitByVoice() = changeCount(+1, CountType.VOICE)
+
+
+
 
     fun toggleStartStop() {
         val running = _ui.value.running
@@ -128,7 +152,7 @@ class HomeViewModel  @Inject constructor(
             keywords = keywords,
             onHit = {
                 // 음성으로 한 번 "인식 성공" 했을 때 +1
-                inc(1)
+                hitByVoice()
             }
         )
     }

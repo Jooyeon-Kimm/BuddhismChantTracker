@@ -1,4 +1,4 @@
-package com.app.practice.buddhismchanttracker.data.model
+package com.app.practice.buddhismchanttracker.data.model.chant
 
 data class DayCount(
     val ymd: String,   // "2025-10-13"

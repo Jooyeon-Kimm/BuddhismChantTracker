@@ -2,8 +2,8 @@ package com.app.practice.buddhismchanttracker.di
 
 import android.content.Context
 import androidx.room.Room
-import com.app.practice.buddhismchanttracker.data.model.ChantDao
-import com.app.practice.buddhismchanttracker.data.model.ChantDb
+import com.app.practice.buddhismchanttracker.data.model.chant.ChantDao
+import com.app.practice.buddhismchanttracker.data.model.chant.ChantDb
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

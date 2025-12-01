@@ -1,4 +1,4 @@
-package com.app.practice.buddhismchanttracker.data.model
+package com.app.practice.buddhismchanttracker.data.model.chant
 
 import android.content.Context
 import androidx.room.Database

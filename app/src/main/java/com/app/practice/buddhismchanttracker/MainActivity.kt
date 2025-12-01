@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.app.practice.buddhismchanttracker.ui.calendar.CalendarRoute
 import com.app.practice.buddhismchanttracker.ui.home.HomeRoute
+import com.app.practice.buddhismchanttracker.ui.settings.SettingsRoute
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -71,7 +72,7 @@ class MainActivity : ComponentActivity() {
                         when (tab) {
                             0 -> HomeRoute()
                             1 -> CalendarRoute()
-                            else -> Placeholder("계정정보 (차후 구현)")
+                            2 -> SettingsRoute()
                         }
                     }
                 }

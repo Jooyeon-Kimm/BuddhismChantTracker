@@ -1,6 +1,6 @@
 package com.app.practice.buddhismchanttracker.ui.home
 
-import com.app.practice.buddhismchanttracker.data.model.ChantSession
+import com.app.practice.buddhismchanttracker.data.model.chant.ChantSession
 
 data class HomeUiState(
     val todayDate: String = "",
@@ -18,4 +18,6 @@ data class HomeUiState(
     // +++ 버튼용 증가 단위
     val bigStep: Int = 10,
     val heardText: String = "",
+
+    val countLogs: List<CountLogEntry> = emptyList(),
 )

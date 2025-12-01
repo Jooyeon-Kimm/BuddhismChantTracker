@@ -14,6 +14,8 @@ ksp = "2.0.21-1.0.25"
 lifecycle = "2.8.6"
 accompanist = "0.36.0"
 hilt = "2.56.2"
+material3 = "1.4.0"
+protoliteWellKnownTypes = "18.0.1"
 
 [libraries]
 androidx-compose-material = { module = "androidx.compose.material:material", version.ref = "material" }
@@ -41,6 +43,8 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+protolite-well-known-types = { group = "com.google.firebase", name = "protolite-well-known-types", version.ref = "protoliteWellKnownTypes" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

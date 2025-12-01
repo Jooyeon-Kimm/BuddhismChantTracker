@@ -1,4 +1,4 @@
-package com.app.practice.buddhismchanttracker.data.model
+package com.app.practice.buddhismchanttracker.data.model.chant
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

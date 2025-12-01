@@ -1,6 +1,6 @@
 package com.app.practice.buddhismchanttracker.ui.calendar
 
-import com.app.practice.buddhismchanttracker.data.model.ChantSession
+import com.app.practice.buddhismchanttracker.data.model.chant.ChantSession
 import java.time.LocalDate
 import java.time.YearMonth
 

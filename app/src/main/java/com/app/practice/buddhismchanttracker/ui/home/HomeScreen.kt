@@ -1,6 +1,5 @@
 package com.app.practice.buddhismchanttracker.ui.home
 
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,57 +15,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import java.text.SimpleDateFormat
 import java.util.Date
+import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.math.roundToInt
-
-@Composable
-fun HomeRoute(
-    vm: HomeViewModel = hiltViewModel()
-) {
-    val ui by vm.ui.collectAsState()
-    val heardText by vm.heardText.collectAsState()
-
-    HomeScreen(
-        dateText = ui.todayDate,
-        type = ui.type,
-        onPickType = vm::pickType,
-        customText = ui.customText,
-        onCustomChange = vm::setCustom,
-        running = ui.running != null,
-        listening = ui.listening,
-        count = ui.count,
-        onMinus1 = vm::dec,
-        onPlus1 = { vm.inc(1) },
-        bigStep = ui.bigStep,
-        onMinusBig = { vm.inc(-ui.bigStep) },
-        onPlusBig = { vm.inc(ui.bigStep) },
-        onChangeBigStep = vm::setBigStep,
-        onStartStop = vm::toggleStartStop,
-        logs = ui.todaySessions.map { s ->
-            val sdf = SimpleDateFormat("a hh시 mm분 ss초", Locale.KOREAN)
-            val start = sdf.format(Date(s.startedAt))
-            val end = s.endedAt?.let { sdf.format(Date(it)) } ?: "진행 중"
-            "· ${start}  -  ${end}   ${s.count}회"
-        },
-        inputText = ui.inputText,
-        onInputChange = vm::setInputText,
-        onConfirmAdd = vm::addItem,
-        items = ui.items,
-        deleteMode = ui.deleteMode,
-        onToggleDeleteMode = vm::toggleDeleteMode,
-        onToggleChecked = vm::toggleItemChecked,
-        onRemove = vm::removeItem,
-        heardText = heardText,
-    )
-}
 
 @Composable
 fun HomeScreen(
@@ -85,7 +38,7 @@ fun HomeScreen(
     onPlusBig: () -> Unit,
     onChangeBigStep: (Int) -> Unit,
     onStartStop: () -> Unit,
-    logs: List<String>,
+    logs: List<CountLogEntry>,
     inputText: String,
     onInputChange: (String) -> Unit,
     onConfirmAdd: () -> Unit,
@@ -143,16 +96,12 @@ fun HomeScreen(
     ) {
         Spacer(Modifier.height(16.dp))
         Text(
-            dateText,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            dateText, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
         )
 
         Spacer(Modifier.height(20.dp))
         Text(
-            "기도 유형",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            "기도 유형", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold
         )
         Spacer(Modifier.height(8.dp))
 
@@ -162,12 +111,12 @@ fun HomeScreen(
             chantLabels.forEach { label ->
                 val checked = (label == currentLabel)
 
-                SwipeRevealChantTypeRow(
+                SwipeDeleteChantType(
                     label = label,
                     checked = checked,
                     enabled = canChangeType,
                     onClick = {
-                        if (!canChangeType) return@SwipeRevealChantTypeRow
+                        if (!canChangeType) return@SwipeDeleteChantType
 
                         val baseType = baseLabelToType[label]
                         if (baseType != null) {
@@ -183,7 +132,7 @@ fun HomeScreen(
                         }
                     },
                     onDelete = {
-                        if (!canChangeType) return@SwipeRevealChantTypeRow
+                        if (!canChangeType) return@SwipeDeleteChantType
 
                         // 현재 선택된 라벨을 지우는 경우 → "직접 입력" 모드로 돌려놓기
                         if (label == currentLabel) {
@@ -192,15 +141,12 @@ fun HomeScreen(
                             onCustomChange("")
                         }
                         chantLabels.remove(label)
-                    }
-                )
+                    })
             }
 
             // 2) “직접 입력” 행
             ChantTypeRow(
-                label = "직접 입력",
-                checked = directChecked,
-                enabled = canChangeType
+                label = "직접 입력", checked = directChecked, enabled = canChangeType
             ) {
                 if (!canChangeType) return@ChantTypeRow
                 lastCustomLabel = null           // 새 직접입력 모드
@@ -239,8 +185,7 @@ fun HomeScreen(
                                 onPickType(ChantType.CUSTOM)
                                 onCustomChange(trimmed)
                             }
-                        },
-                        enabled = canChangeType && customText.trim().isNotEmpty()
+                        }, enabled = canChangeType && customText.trim().isNotEmpty()
                     ) {
                         Text("추가")
                     }
@@ -256,18 +201,14 @@ fun HomeScreen(
             }
             Spacer(Modifier.width(12.dp))
             if (running) {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(if (listening) "음성 인식 중" else "대기") }
-                )
+                AssistChip(onClick = {}, label = { Text(if (listening) "음성 인식 중" else "대기") })
             }
         }
 
         if (heardText.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "인식된 문장: $heardText",
-                style = MaterialTheme.typography.bodyMedium
+                text = "인식된 문장: $heardText", style = MaterialTheme.typography.bodyMedium
             )
         }
 
@@ -302,17 +243,13 @@ fun HomeScreen(
         }
 
         if (showStepDialog) {
-            StepDialog(
-                initial = bigStep,
-                onConfirm = { newStep ->
-                    onChangeBigStep(newStep)
-                    showStepDialog = false
-                },
-                onDismiss = { showStepDialog = false }
-            )
+            SetStepDialog(initial = bigStep, onConfirm = { newStep ->
+                onChangeBigStep(newStep)
+                showStepDialog = false
+            }, onDismiss = { showStepDialog = false })
         }
 
-        // ===== 기록 =====
+        // ===== 기록 (버튼/음성 모두 포함) =====
         Spacer(Modifier.height(24.dp))
         Text(
             "기록",
@@ -320,148 +257,35 @@ fun HomeScreen(
             fontWeight = FontWeight.SemiBold
         )
         Spacer(Modifier.height(8.dp))
+
+        val timeFormatter = remember {
+            SimpleDateFormat("a hh시 mm분 ss초", Locale.KOREAN)
+        }
+
         if (logs.isEmpty()) {
-            Text("오늘 기록이 아직 없어요.")
+            Text("아직 기록이 없습니다.")
         } else {
-            logs.forEach { line -> Text(line) }
-        }
-
-        // ===== 체크리스트 쪽은 네가 쓰던 코드 그대로 밑에 이어 붙이면 됨 =====
-        // (지금 질문은 기도 유형 + 카운터 쪽이라 여기까지만 정리)
-    }
-}
-
-@Composable
-private fun ChantTypeRow(
-    label: String,
-    checked: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 4.dp)
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = { if (enabled) onClick() },
-            enabled = enabled
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            label,
-            color = if (enabled)
-                MaterialTheme.colorScheme.onSurface
-            else
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-        )
-    }
-}
-
-@Composable
-private fun StepDialog(
-    initial: Int,
-    onConfirm: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var text by remember { mutableStateOf(initial.toString()) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("증가 단위 설정") },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { s -> text = s.filter { it.isDigit() } },
-                label = { Text("한 번에 증가할 회수 (1 이상)") },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val v = text.toIntOrNull()
-                if (v != null && v > 0) {
-                    onConfirm(v)
+            logs.forEach { entry ->
+                val time = timeFormatter.format(Date(entry.timestamp))
+                val tag = when (entry.source) {
+                    CountType.VOICE -> "[음성 인식]"
+                    CountType.MANUAL_SMALL,
+                    CountType.MANUAL_BIG -> "[버튼 추가]"
                 }
-            }) { Text("확인") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("취소") }
-        }
-    )
-}
-
-/**
- * 기도유형 한 줄:
- * - 오른쪽 → 왼쪽 스와이프하면 “삭제” 버튼 노출
- * - 삭제 버튼 눌렀을 때 실제 삭제
- */
-@Composable
-private fun SwipeRevealChantTypeRow(
-    label: String,
-    checked: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val density = LocalDensity.current
-    val maxSwipeDp = 80.dp
-    val maxSwipePx = with(density) { maxSwipeDp.toPx() }
-
-    var offsetX by remember { mutableStateOf(0f) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(enabled) {
-                // 염불 중에는 스와이프 막기
-                if (!enabled) return@pointerInput
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = { _, dragAmount ->
-                        val newOffset = (offsetX + dragAmount)
-                            .coerceIn(-maxSwipePx, 0f)   // 왼쪽으로만 스와이프
-                        offsetX = newOffset
-                    },
-                    onDragEnd = {
-                        // 절반 이상 밀렸으면 완전 오픈, 아니면 닫기
-                        offsetX = if (offsetX < -maxSwipePx / 2f) -maxSwipePx else 0f
-                    }
+                val sign = if (entry.delta >= 0) "+" else ""
+                // 1줄째: [버튼 추가] ㅇ시 ㅇ분 ㅇ초 +1
+                Text(
+                    "$tag $time ${sign}${entry.delta}",
+                    style = MaterialTheme.typography.bodySmall
                 )
-            }
-    ) {
-        // 뒤에 깔리는 삭제 버튼
-        Row(
-            modifier = Modifier
-                .matchParentSize()
-                .padding(end = 8.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (offsetX != 0f && enabled) {
-                TextButton(onClick = onDelete) {
-                    Text(
-                        "삭제",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                // 2줄째: -> 10회
+                Text(
+                    "-> ${entry.total}회",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(4.dp))
             }
         }
 
-        // 실제 보이는 행
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .padding(vertical = 4.dp)
-        ) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { if (enabled) onClick() },
-                enabled = enabled
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(label)
-        }
     }
 }

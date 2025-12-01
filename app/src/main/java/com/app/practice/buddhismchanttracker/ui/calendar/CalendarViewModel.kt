@@ -3,16 +3,13 @@ package com.app.practice.buddhismchanttracker.ui.calendar
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.app.practice.buddhismchanttracker.data.model.ChantDb
-import com.app.practice.buddhismchanttracker.data.model.ChantSession
+import com.app.practice.buddhismchanttracker.data.model.chant.ChantDb
 import com.app.practice.buddhismchanttracker.data.repository.ChantRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.YearMonth
-import java.time.ZoneId.systemDefault
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 

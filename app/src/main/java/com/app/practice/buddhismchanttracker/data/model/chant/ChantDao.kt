@@ -1,9 +1,10 @@
-package com.app.practice.buddhismchanttracker.data.model
+package com.app.practice.buddhismchanttracker.data.model.chant
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.app.practice.buddhismchanttracker.data.model.chant.DayCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -33,4 +34,10 @@ interface ChantDao {
     """
     )
     fun dayTotals(fromYmd: String, toYmd: String): Flow<List<DayCount>>
+
+    @Query("DELETE FROM chant_sessions WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
+
+    @Query("SELECT * FROM chant_sessions")
+    suspend fun getAllSessions(): List<ChantSession>
 }
