@@ -17,9 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun HomeScreen(
@@ -39,14 +43,18 @@ fun HomeScreen(
     onChangeBigStep: (Int) -> Unit,
     onStartStop: () -> Unit,
     logs: List<CountLogEntry>,
-    inputText: String,
-    onInputChange: (String) -> Unit,
-    onConfirmAdd: () -> Unit,
+    logDeleteMode: Boolean,
+    selectedLogTimestamps: Set<Long>,
+    onToggleLogDeleteMode: () -> Unit,
+    onToggleLogSelected: (CountLogEntry) -> Unit,
     items: List<ChantItem>,
     deleteMode: Boolean,
     onToggleDeleteMode: () -> Unit,
     onToggleChecked: (Long) -> Unit,
     onRemove: (Long) -> Unit,
+    onSelectAllLogs: () -> Unit,
+    onClearLogSelection: () -> Unit,
+    onDeleteSelectedLogs: () -> Unit,
     heardText: String,
 ) {
     // 염불 세션이 진행 중일 때는 유형 변경/추가/삭제 막기
@@ -91,19 +99,25 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.height(16.dp))
+        // ===== 날짜 =====
+        Spacer(Modifier.height(8.dp))
         Text(
-            dateText, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
+            dateText, style = MaterialTheme.typography.headlineMedium.copy(
+                fontSize = 24.sp, fontWeight = FontWeight.Bold
+            )
         )
 
-        Spacer(Modifier.height(20.dp))
+        // ===== 기도 유형 =====
+        Spacer(Modifier.height(24.dp))
         Text(
-            "기도 유형", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold
+            "기도 유형", style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = 20.sp, fontWeight = FontWeight.SemiBold
+            )
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
         Column(Modifier.fillMaxWidth()) {
 
@@ -142,9 +156,11 @@ fun HomeScreen(
                         }
                         chantLabels.remove(label)
                     })
+                Spacer(Modifier.height(4.dp))
             }
 
             // 2) “직접 입력” 행
+            Spacer(Modifier.height(8.dp))
             ChantTypeRow(
                 label = "직접 입력", checked = directChecked, enabled = canChangeType
             ) {
@@ -155,8 +171,8 @@ fun HomeScreen(
             }
 
             // 3) 직접 입력 텍스트 + “추가” 버튼
-            //   → lastCustomLabel 이 null일 때만 보여줌
             if (type == ChantType.CUSTOM && lastCustomLabel == null) {
+                Spacer(Modifier.height(8.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -166,10 +182,15 @@ fun HomeScreen(
                     OutlinedTextField(
                         value = customText,
                         onValueChange = onCustomChange,
-                        placeholder = { Text("예) 나무 대자대비 관세음보살") },
+                        placeholder = {
+                            Text(
+                                "예) 나무 대자대비 관세음보살", fontSize = 16.sp
+                            )
+                        },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        enabled = canChangeType
+                        enabled = canChangeType,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Button(
@@ -187,33 +208,54 @@ fun HomeScreen(
                             }
                         }, enabled = canChangeType && customText.trim().isNotEmpty()
                     ) {
-                        Text("추가")
+                        Text("추가", fontSize = 18.sp)
                     }
                 }
             }
         }
 
         // ===== 염불 시작 / 음성 인식 상태 =====
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(Modifier.height(28.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
             Button(onClick = onStartStop) {
-                Text(if (running) "종료" else "염불 시작")
+                Text(
+                    if (running) "종료" else "염불 시작", fontSize = 20.sp, fontWeight = FontWeight.Bold
+                )
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
             if (running) {
-                AssistChip(onClick = {}, label = { Text(if (listening) "음성 인식 중" else "대기") })
+                AssistChip(onClick = {}, label = {
+                    Text(
+                        if (listening) "음성 인식 중" else "대기", fontSize = 16.sp
+                    )
+                })
             }
         }
 
         if (heardText.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
-                text = "인식된 문장: $heardText", style = MaterialTheme.typography.bodyMedium
+                text = "인식된 문장", style = MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 16.sp, fontWeight = FontWeight.SemiBold
+                )
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = heardText, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
             )
         }
 
         // ===== 카운터 영역 =====
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
+        Text(
+            "현재 횟수", style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = 20.sp, fontWeight = FontWeight.SemiBold
+            )
+        )
+        Spacer(Modifier.height(12.dp))
 
         var showStepDialog by remember { mutableStateOf(false) }
 
@@ -222,25 +264,36 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            OutlinedButton(onClick = onMinusBig) { Text("-$bigStep") }
-            Spacer(Modifier.width(8.dp))
-            OutlinedButton(onClick = onMinus1) { Text("–1") }
-            Spacer(Modifier.width(24.dp))
+            OutlinedButton(onClick = onMinusBig) {
+                Text("-$bigStep", fontSize = 18.sp)
+            }
+            Spacer(Modifier.width(12.dp))
+            OutlinedButton(onClick = onMinus1) {
+                Text("–1", fontSize = 18.sp)
+            }
+            Spacer(Modifier.width(28.dp))
             Text(
-                "$count 회",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold
+                "$count 회", style = MaterialTheme.typography.displaySmall.copy(
+                    fontSize = 40.sp, fontWeight = FontWeight.Bold
+                )
             )
-            Spacer(Modifier.width(24.dp))
-            OutlinedButton(onClick = onPlus1) { Text("+") }
-            Spacer(Modifier.width(8.dp))
-            OutlinedButton(onClick = onPlusBig) { Text("+$bigStep") }
+            Spacer(Modifier.width(28.dp))
+            OutlinedButton(onClick = onPlus1) {
+                Text("+1", fontSize = 18.sp)
+            }
+            Spacer(Modifier.width(12.dp))
+            OutlinedButton(onClick = onPlusBig) {
+                Text("+$bigStep", fontSize = 18.sp)
+            }
         }
 
-        Spacer(Modifier.height(8.dp))
-        TextButton(onClick = { showStepDialog = true }) {
-            Text("큰 증가 단위 설정 (현재: ${bigStep}회)")
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = { showStepDialog = true }) {
+            Text(
+                "큰 증가 단위 설정 (현재: ${bigStep}회)", fontSize = 16.sp
+            )
         }
+
 
         if (showStepDialog) {
             SetStepDialog(initial = bigStep, onConfirm = { newStep ->
@@ -250,42 +303,161 @@ fun HomeScreen(
         }
 
         // ===== 기록 (버튼/음성 모두 포함) =====
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
+
         Text(
-            "기록",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            "기록", style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = 20.sp, fontWeight = FontWeight.SemiBold
+            )
         )
-        Spacer(Modifier.height(8.dp))
 
         val timeFormatter = remember {
             SimpleDateFormat("a hh시 mm분 ss초", Locale.KOREAN)
         }
 
         if (logs.isEmpty()) {
-            Text("아직 기록이 없습니다.")
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "아직 기록이 없습니다.", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+            )
         } else {
-            logs.forEach { entry ->
-                val time = timeFormatter.format(Date(entry.timestamp))
-                val tag = when (entry.source) {
-                    CountType.VOICE -> "[음성 인식]"
-                    CountType.MANUAL_SMALL,
-                    CountType.MANUAL_BIG -> "[버튼 추가]"
+            Spacer(Modifier.height(8.dp))
+
+            val total = logs.size
+
+            if (!logDeleteMode) {
+                // 일반 모드: 우측 끝에 "로그 삭제"만
+                Row(
+                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(onClick = onToggleLogDeleteMode) {
+                        Text("로그 삭제")
+                    }
                 }
-                val sign = if (entry.delta >= 0) "+" else ""
-                // 1줄째: [버튼 추가] ㅇ시 ㅇ분 ㅇ초 +1
-                Text(
-                    "$tag $time ${sign}${entry.delta}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                // 2줄째: -> 10회
-                Text(
-                    "-> ${entry.total}회",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(Modifier.height(4.dp))
+            } else {
+                // 삭제 모드: "전체 선택   선택 항목 삭제   취소" 한 줄
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // ⬅ 왼쪽: 전체 선택
+                    Checkbox(
+                        checked = selectedLogTimestamps.size == total && total > 0,
+                        onCheckedChange = { checked ->
+                            if (checked) onSelectAllLogs() else onClearLogSelection()
+                        })
+                    Text("전체 선택")
+
+                    // 가운데 여백: 오른쪽 버튼들 밀어내기
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // ➡ 가운데: 선택 항목 삭제
+                    if (selectedLogTimestamps.isNotEmpty()) {
+                        TextButton(onClick = onDeleteSelectedLogs) {
+                            Text("선택 항목 삭제")
+                        }
+                        Spacer(Modifier.width(8.dp))
+                    }
+
+                    // ➡ 오른쪽: 취소
+                    TextButton(onClick = onToggleLogDeleteMode) {
+                        Text("취소")
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // 로그 카드 리스트
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                logs.forEach { entry ->
+                    val startTime = timeFormatter.format(Date(entry.timestamp))
+                    val tag = when (entry.source) {
+                        CountType.VOICE -> "[음성 인식]"
+                        CountType.MANUAL_SMALL,
+                        CountType.MANUAL_BIG,
+                            -> "[버튼]"
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // ✅ 삭제 모드일 때만 체크박스 표시
+                            if (logDeleteMode) {
+                                Checkbox(
+                                    checked = selectedLogTimestamps.contains(entry.timestamp),
+                                    onCheckedChange = { onToggleLogSelected(entry) })
+                                Spacer(Modifier.width(8.dp))
+                            }
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                // 1줄: 태그
+                                Text(
+                                    text = tag, style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                Spacer(Modifier.height(4.dp))
+
+                                if (entry.source == CountType.VOICE) {
+                                    // ===== 음성 세션: 시작 ~ 종료 =====
+                                    val timeText = if (entry.endTimestamp == null) {
+                                        "$startTime -"
+                                    } else {
+                                        val endTime = timeFormatter.format(Date(entry.endTimestamp))
+                                        "$startTime - $endTime"
+                                    }
+
+                                    Text(
+                                        text = "시간  :  $timeText",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+
+                                    if (entry.endTimestamp != null) {
+                                        val sign = if (entry.delta >= 0) "+" else ""
+                                        Text(
+                                            text = "증가  :  $sign${entry.delta}회",
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "합계  :  ${entry.total}회",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+                                } else {
+                                    // ===== 버튼 로그 =====
+                                    val sign = if (entry.delta >= 0) "+" else ""
+                                    Text(
+                                        text = "시간  :  $startTime",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+                                    Text(
+                                        text = "변경  :  $sign${entry.delta}회",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+                                    Text(
+                                        text = "합계  :  ${entry.total}회",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-
     }
 }

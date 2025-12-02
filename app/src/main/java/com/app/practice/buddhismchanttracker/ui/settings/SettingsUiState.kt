@@ -11,6 +11,7 @@ data class TimePoint(
     val total: Int
 )
 
+// ui/settings/SettingsUiState.kt
 data class SettingsUiState(
     val userName: String? = null,
     val userEmail: String? = null,
@@ -19,8 +20,13 @@ data class SettingsUiState(
 
     // 통계 관련
     val aggregation: StatsAggregation = StatsAggregation.DAY,
-    val allTypesMode: Boolean = true,          // true: 전체 ChantType, false: 특정 타입
+    val allTypesMode: Boolean = true,
     val selectedType: ChantType? = null,
     val availableTypes: List<ChantType> = ChantType.values().toList(),
-    val points: List<TimePoint> = emptyList()
+    val points: List<TimePoint> = emptyList(),
+
+    // 로그인
+    val isAuthLoading: Boolean = false,
+    val lastAuthError: String? = null,
+    val lastAuthMessage: String? = null,   // 성공 메시지용
 )

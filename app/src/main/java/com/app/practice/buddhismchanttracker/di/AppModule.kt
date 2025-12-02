@@ -1,3 +1,4 @@
+// di/AppModule.kt
 package com.app.practice.buddhismchanttracker.di
 
 import android.content.Context
@@ -19,14 +20,17 @@ object AppModule {
     @Singleton
     fun provideChantDb(
         @ApplicationContext context: Context
-    ): ChantDb {
-        return Room.databaseBuilder(
+    ): ChantDb =
+        Room.databaseBuilder(
             context,
             ChantDb::class.java,
-            "chant.db"
-        ).build()
-    }
+            "chant-db"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+
 
     @Provides
-    fun provideChantDao(db: ChantDb): ChantDao = db.dao()
+    @Singleton
+    fun provideChantDao(db: ChantDb): ChantDao = db.chantDao()
 }

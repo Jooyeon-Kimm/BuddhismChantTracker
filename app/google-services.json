@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "212904208266",
+    "project_id": "androidtest-55629",
+    "storage_bucket": "androidtest-55629.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212904208266:android:e5a71147f518feafed4a73",
+        "android_client_info": {
+          "package_name": "com.app.firebase.practice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "212904208266-l5hfn0l4fodmnr6n9rqigv2nk7hdggb1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDj0EnklMzRXKkyX3CLgRBmeQZU0uZQVlo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "212904208266-l5hfn0l4fodmnr6n9rqigv2nk7hdggb1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212904208266:android:d828ee57c6645057ed4a73",
+        "android_client_info": {
+          "package_name": "com.app.practice.buddhismchanttracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "212904208266-l5hfn0l4fodmnr6n9rqigv2nk7hdggb1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDj0EnklMzRXKkyX3CLgRBmeQZU0uZQVlo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "212904208266-l5hfn0l4fodmnr6n9rqigv2nk7hdggb1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

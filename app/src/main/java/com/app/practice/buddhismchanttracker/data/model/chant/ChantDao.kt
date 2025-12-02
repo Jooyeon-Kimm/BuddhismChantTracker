@@ -40,4 +40,19 @@ interface ChantDao {
 
     @Query("SELECT * FROM chant_sessions")
     suspend fun getAllSessions(): List<ChantSession>
+
+    @Insert
+    suspend fun insertLog(log: ChantLogEntity)
+
+    @Query(
+        """
+        SELECT * FROM chant_logs
+        WHERE ymd = :ymd
+        ORDER BY timestamp DESC
+        """
+    )
+    fun logsOfDay(ymd: String): Flow<List<ChantLogEntity>>
+
+    @Query("DELETE FROM chant_logs WHERE timestamp IN (:timestamps)")
+    suspend fun deleteLogsByTimestamps(timestamps: List<Long>)
 }

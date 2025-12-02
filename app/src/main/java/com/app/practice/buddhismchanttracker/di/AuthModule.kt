@@ -1,7 +1,7 @@
 package com.app.practice.buddhismchanttracker.di
 
 import com.app.practice.buddhismchanttracker.data.repository.AuthRepository
-import com.app.practice.buddhismchanttracker.data.repository.DefaultAuthRepository
+import com.app.practice.buddhismchanttracker.data.repository.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,6 +15,6 @@ abstract class AuthModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        impl: DefaultAuthRepository
+        impl: AuthRepositoryImpl
     ): AuthRepository
 }

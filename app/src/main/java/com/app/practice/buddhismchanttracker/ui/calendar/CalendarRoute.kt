@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,11 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
+import com.app.practice.buddhismchanttracker.ui.home.CountType
 
 @Composable
 fun CalendarRoute(
@@ -156,23 +162,114 @@ fun CalendarRoute(
 
         // 기록 제목
         item {
-            Text("기록", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                "기록",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
         }
 
-        // 기록 리스트 (시·분·초 표시)
-        if (ui.sessions.isEmpty()) {
+        // HomeScreen과 동일하게, 최신 로그가 위로 오도록 정렬
+        val logs = ui.logsOfDay.sortedByDescending { it.timestamp }
+
+        if (logs.isEmpty()) {
             item {
-                Text("해당 날짜 기록이 없어요.")
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "해당 날짜 기록이 없어요.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
         } else {
-            items(ui.sessions) { s ->
-                val start = sdf.format(Date(s.startedAt))
-                val end = s.endedAt?.let { sdf.format(Date(it)) } ?: "진행 중"
-                Text("· $start  -  $end   ${s.count}회")
-                Spacer(Modifier.height(4.dp))
+            item {
+                Spacer(Modifier.height(8.dp))
             }
+
+            items(logs) { entry ->
+                val startTime = sdf.format(Date(entry.timestamp))
+                val tag = when (entry.source) {
+                    CountType.VOICE -> "[음성 인식]"
+                    CountType.MANUAL_SMALL,
+                    CountType.MANUAL_BIG -> "[버튼]"
+                }
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            // 1줄: 태그
+                            Text(
+                                text = tag,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                            Spacer(Modifier.height(4.dp))
+
+                            if (entry.source == CountType.VOICE) {
+                                // ===== 음성 세션: 시작 ~ 종료 =====
+                                val timeText = if (entry.endTimestamp == null) {
+                                    "$startTime -"
+                                } else {
+                                    val endTime = sdf.format(Date(entry.endTimestamp))
+                                    "$startTime - $endTime"
+                                }
+
+                                Text(
+                                    text = "시간  :  $timeText",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                )
+
+                                if (entry.endTimestamp != null) {
+                                    val sign = if (entry.delta >= 0) "+" else ""
+                                    Text(
+                                        text = "증가  :  $sign${entry.delta}회",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                    )
+                                }
+
+                                Text(
+                                    text = "합계  :  ${entry.total}회",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                )
+                            } else {
+                                // ===== 버튼 로그 =====
+                                val sign = if (entry.delta >= 0) "+" else ""
+                                Text(
+                                    text = "시간  :  $startTime",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                )
+                                Text(
+                                    text = "변경  :  $sign${entry.delta}회",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                )
+                                Text(
+                                    text = "합계  :  ${entry.total}회",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             item { Spacer(Modifier.height(16.dp)) }
         }
+
+
     }
 
     if (showMonthPicker) {

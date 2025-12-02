@@ -1,6 +1,7 @@
 // ui/settings/SettingsScreen.kt
 package com.app.practice.buddhismchanttracker.ui.settings
 
+import AccountCard
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,7 +27,8 @@ fun SettingsScreen(
     onTypeChange: (ChantType?) -> Unit,
     onSignInKakao: () -> Unit,
     onSignInGoogle: () -> Unit,
-    onSignInFirebase: () -> Unit,
+    onSignInFirebase: (String, String) -> Unit,
+    onSignUpFirebase: (String, String) -> Unit,   // <- 회원가입 콜백 추가
     onSignOut: () -> Unit,
 ) {
     LazyColumn(
@@ -42,6 +44,7 @@ fun SettingsScreen(
                 onSignInKakao = onSignInKakao,
                 onSignInGoogle = onSignInGoogle,
                 onSignInFirebase = onSignInFirebase,
+                onSignUpFirebase = onSignUpFirebase,   // <- 여기도 추가
                 onSignOut = onSignOut
             )
         }

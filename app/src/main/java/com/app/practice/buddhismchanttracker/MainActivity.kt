@@ -1,5 +1,6 @@
 package com.app.practice.buddhismchanttracker
 
+import HomeRoute
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.app.practice.buddhismchanttracker.ui.calendar.CalendarRoute
-import com.app.practice.buddhismchanttracker.ui.home.HomeRoute
 import com.app.practice.buddhismchanttracker.ui.settings.SettingsRoute
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted

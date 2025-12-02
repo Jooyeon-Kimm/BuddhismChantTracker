@@ -1,19 +1,16 @@
 package com.app.practice.buddhismchanttracker.data.model.chant
 
-import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ChantSession::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        ChantSession::class,
+        ChantLogEntity::class,   // 로그 테이블 포함
+    ],
+    version = 3,
+    exportSchema = false        // schemaLocation 경고 없애기
+)
 abstract class ChantDb : RoomDatabase() {
-    abstract fun dao(): ChantDao
-
-    companion object {
-        @Volatile private var chantDb: ChantDb? = null
-        fun get(ctx: Context): ChantDb =
-            chantDb ?: synchronized(this) {
-                chantDb ?: Room.databaseBuilder(ctx, ChantDb::class.java, "chant.db").build().also { chantDb = it }
-            }
-    }
+    abstract fun chantDao(): ChantDao
 }

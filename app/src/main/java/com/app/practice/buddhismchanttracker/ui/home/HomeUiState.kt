@@ -20,4 +20,8 @@ data class HomeUiState(
     val heardText: String = "",
 
     val countLogs: List<CountLogEntry> = emptyList(),
+
+    // 로그 삭제 모드
+    val logDeleteMode: Boolean = false,
+    val selectedLogTimestamps: Set<Long> = emptySet(),
 )

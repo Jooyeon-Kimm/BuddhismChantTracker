@@ -1,6 +1,7 @@
 package com.app.practice.buddhismchanttracker.ui.calendar
 
 import com.app.practice.buddhismchanttracker.data.model.chant.ChantSession
+import com.app.practice.buddhismchanttracker.ui.home.CountLogEntry
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -11,5 +12,6 @@ data class CalendarUiState(
     val showDatePicker: Boolean = false,
     val selectedMonth: YearMonth = YearMonth.now(),
     // ymd(LocalDate) -> total
-    val dayTotals: Map<LocalDate, Int> = emptyMap()
+    val dayTotals: Map<LocalDate, Int> = emptyMap(),
+    val logsOfDay: List<CountLogEntry> = emptyList(),
 )
